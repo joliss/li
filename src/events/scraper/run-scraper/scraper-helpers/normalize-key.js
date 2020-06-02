@@ -15,21 +15,6 @@ const schemaKeys = [
   null // Use when we want to discard the column.
 ]
 
-/**
- * Hand-rolled version of _.pickBy from lodash/
- * @param {object} object
- * @param {(value:any, key: string|null) => boolean} predicate
- */
-const pickBy = (object, predicate) => {
-  const obj = {}
-  for (const key in object) {
-    if (predicate(object[key], key)) {
-      obj[key] = object[key]
-    }
-  }
-  return obj
-}
-
 const assertAllValuesAreInSchema = (mapping) => {
   const badKeys = Object.values(mapping).filter(v => !schemaKeys.includes(v))
   assert(badKeys.length === 0, `Invalid values in mapping: ${badKeys.join()}`)
@@ -40,16 +25,16 @@ const normalizeKey = ({ heading, mapping }) => {
   const makeSlug = s => slugify(s, { lower: true })
 
   const slugHeading = makeSlug(heading)
+  const mappedToKeys = Object.entries(mapping).
+        map(pair => [ makeSlug(pair[0]), pair[1] ]).
+        filter(pair => slugHeading.includes(pair[0])).
+        map(pair => pair[1])
 
-  const foundItems = pickBy(mapping, (schemaKey, headingFragment) => {
-    const slugFragment = makeSlug(headingFragment)
-    return slugHeading.includes(slugFragment)
-  })
-  const foundSchemaKeys = [ ...new Set(Object.values(foundItems)) ]
-  assert.equal(foundSchemaKeys.length, 1,
+  const uniqueSchemaKeys = [ ...new Set(mappedToKeys) ]
+  assert.equal(uniqueSchemaKeys.length, 1,
     `no single match found for ${slugHeading} in ${JSON.stringify(mapping)}}`
   )
-  return foundSchemaKeys[0]
+  return uniqueSchemaKeys[0]
 }
 
 module.exports = normalizeKey
