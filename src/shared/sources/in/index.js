@@ -36,13 +36,13 @@ module.exports = {
             'https://www.mohfw.gov.in/'
         }
       ],
-      scrape ($, date, { assertTotalsAreReasonable, getIso2FromName, getSchemaKeyFromHeading, normalizeTable }) {
+      scrape ($, date, { assertTotalsAreReasonable, getIso2FromName, normalizeKey, normalizeTable }) {
         const normalizedTable = normalizeTable({ $, tableSelector: '#state-data' })
 
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
+          dataKeysByColumnIndex[index] = normalizeKey({ heading, schemaKeysByHeadingFragment })
         })
 
         // Create new array with just the state data (no headings, comments, totals)

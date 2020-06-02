@@ -3,9 +3,9 @@ const cumulateObjects = require('./scraper-helpers/cumulate-objects')
 const fipsCodes = require('./scraper-helpers/fips-codes')
 const getDataWithTestedNegativeApplied = require('./scraper-helpers/get-data-with-tested-negative-applied')
 const getIso2FromName = require('./scraper-helpers/get-iso2-from-name')
-const getSchemaKeyFromHeading = require('./scraper-helpers/get-schema-key-from-heading')
 const groupBy = require('./scraper-helpers/group-by')
 const iso2Codes = require('./scraper-helpers/iso2-codes')
+const normalizeKey = require('./scraper-helpers/normalize-key')
 const normalizeTable = require('./scraper-helpers/normalize-table')
 const pdfUtils = require('./scraper-helpers/pdf-utils.js')
 const propertyTableColumns = require('./scraper-helpers/property-table-columns.js')
@@ -17,7 +17,7 @@ const scraperHelpers = {
   fipsCodes,
   getDataWithTestedNegativeApplied,
   getIso2FromName,
-  getSchemaKeyFromHeading,
+  normalizeKey,
   groupBy,
   iso2Codes,
   normalizeTable,

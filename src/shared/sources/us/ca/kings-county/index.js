@@ -34,7 +34,7 @@ module.exports = {
     {
       startDate: '2020-04-13',
       crawl,
-      scrape ($, date, { getSchemaKeyFromHeading }) {
+      scrape ($, date, { normalizeKey }) {
         const $rows = $('ul:contains("Total Cases") > li')
         const data = {}
         $rows.each((index, row) => {
@@ -43,7 +43,7 @@ module.exports = {
             .text()
             .split('\n')[0]
             .split(': ')
-          const key = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
+          const key = normalizeKey({ heading, schemaKeysByHeadingFragment })
           data[key] = parse.number(value)
         })
 

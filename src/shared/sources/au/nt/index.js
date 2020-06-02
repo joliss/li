@@ -27,7 +27,7 @@ module.exports = {
           url: 'https://coronavirus.nt.gov.au/'
         }
       ],
-      scrape ($, date, { getSchemaKeyFromHeading }) {
+      scrape ($, date, { normalizeKey }) {
         const $rows = $('.header-widget div span, .header-widget p')
         const data = {}
         $rows.each((index, row) => {
@@ -36,7 +36,7 @@ module.exports = {
           const heading = headingWords.join(' ')
           const numberInLabel = heading.match(/\d/)
           if (!numberInLabel) {
-            const key = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
+            const key = normalizeKey({ heading, schemaKeysByHeadingFragment })
             data[key] = parse.number(value)
           }
         })

@@ -37,7 +37,7 @@ module.exports = {
         }
       ],
       scrape ($, date, {
-        getDataWithTestedNegativeApplied, getSchemaKeyFromHeading, normalizeTable, transposeArrayOfArrays
+        getDataWithTestedNegativeApplied, normalizeKey, normalizeTable, transposeArrayOfArrays
       }) {
         const [ , ...tableData ] = normalizeTable({ $, tableSelector: '.maincontent table:first-of-type' })
         const normalizedTable = transposeArrayOfArrays(tableData)
@@ -53,7 +53,7 @@ module.exports = {
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({
+          dataKeysByColumnIndex[index] = normalizeKey({
             heading: heading.replace('(in NSW from confirmed cases)', ''),
             schemaKeysByHeadingFragment
           })

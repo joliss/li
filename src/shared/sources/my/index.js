@@ -32,7 +32,7 @@ module.exports = {
         },
       ],
       scrape ($, date, {
-        getDataWithTestedNegativeApplied, getSchemaKeyFromHeading, normalizeTable, transposeArrayOfArrays
+        getDataWithTestedNegativeApplied, normalizeKey, normalizeTable, transposeArrayOfArrays
       }) {
         const normalizedTable = transposeArrayOfArrays(
           normalizeTable({ $, tableSelector: 'center > table' })
@@ -41,7 +41,7 @@ module.exports = {
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({
+          dataKeysByColumnIndex[index] = normalizeKey({
             heading: heading,
             schemaKeysByHeadingFragment
           })
