@@ -33,12 +33,8 @@ const pickBy = (object, predicate) => {
 }
 
 const assertAllValuesAreInSchema = (mapping) => {
-  const potentialKeys = Object.values(mapping)
-  potentialKeys.forEach(potentialKey =>
-    assert(
-      schemaKeys.some(validKey => validKey === potentialKey),
-      `Invalid value in mapping: ${potentialKey}`)
-  )
+  const badKeys = Object.values(mapping).filter(v => !schemaKeys.includes(v))
+  assert(badKeys.length === 0, `Invalid values in mapping: ${badKeys.join()}`)
 }
 
 const normalizeKey = ({ heading, mapping }) => {

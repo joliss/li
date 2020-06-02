@@ -87,7 +87,7 @@ test('all mapping destination values must exist in schema', t => {
   mapping = {
     'positive': 'invalid_mapping_key'
   }
-  const errRe = new RegExp('Invalid value in mapping: invalid_mapping_key')
+  const errRe = new RegExp('Invalid values in mapping: invalid_mapping_key')
   t.throws(() => normalizeKey( { heading: 'positive', mapping } ), errRe)
   t.end()
 })
