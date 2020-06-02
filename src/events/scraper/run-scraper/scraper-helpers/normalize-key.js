@@ -1,8 +1,6 @@
 const assert = require('assert')
 const slugify = require('slugify')
 
-const slugifyOptions = { lower: true }
-
 const schemaKeys = [
   'active',
   'cases',
@@ -39,14 +37,16 @@ const assertAllValuesAreInSchema = (mapping) => {
 
 const normalizeKey = ({ heading, mapping }) => {
   assertAllValuesAreInSchema(mapping)
-  const slugHeading = slugify(heading, slugifyOptions)
+  const makeSlug = s => slugify(s, { lower: true })
+
+  const slugHeading = makeSlug(heading)
 
   const foundItems = pickBy(mapping, (schemaKey, headingFragment) => {
-    const slugFragment = slugify(headingFragment, slugifyOptions)
+    const slugFragment = makeSlug(headingFragment)
     return slugHeading.includes(slugFragment)
   })
   const foundSchemaKeys = [ ...new Set(Object.values(foundItems)) ]
-  assert.strictEqual(foundSchemaKeys.length, 1,
+  assert.equal(foundSchemaKeys.length, 1,
     `no single match found for ${slugHeading} in ${JSON.stringify(mapping)}}`
   )
   return foundSchemaKeys[0]
