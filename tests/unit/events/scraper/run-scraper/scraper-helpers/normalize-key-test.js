@@ -58,6 +58,20 @@ test('single entry that is mapped via several maps to same value is ok', t => {
   t.end()
 })
 
+test('can map a key to null', t => {
+  mapping = {
+    'case': 'cases',
+    'positive': 'cases',
+    'other': null,
+    'another': null
+  }
+  assertNormalizedKeyEquals(t, 'positive cases', 'cases')
+  assertNormalizedKeyEquals(t, 'cases', 'cases')
+  assertNormalizedKeyEquals(t, 'something other than that', null)
+  assertNormalizedKeyEquals(t, 'another thing', null)
+  t.end()
+})
+
 test('entry mapped to multiple distinct values fails', t => {
   mapping = {
     'case': 'cases',
