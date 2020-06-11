@@ -31,7 +31,7 @@ test('all headings must be mapped', t => {
   const mapping = {
     county: 'county'
   }
-  const re = new RegExp('Missing mapping for cases')
+  const re = new RegExp('No matches for cases in mapping')
   t.throws(() => { propertyColumnIndices(headings, mapping) }, re)
   t.end()
 })
@@ -79,7 +79,7 @@ test('all mapping destination values must exist in schema', t => {
   const mapping = {
     invalid_key: 'something'
   }
-  const re = new RegExp('Invalid keys in mapping: invalid_key')
+  const re = /Invalid keys in mapping: invalid_key/
   t.throws(() => { propertyColumnIndices(headings, mapping) }, re)
   t.end()
 })
@@ -102,7 +102,7 @@ test('fails if no match', t => {
     county: /nomatch/,
     cases: 'cases'
   }
-  const re = /No matches for county \(\/nomatch\/\) in headings county; cases/
+  const re = /No matches for county in mapping/
   t.throws(() => { propertyColumnIndices(headings, mapping) }, re)
   t.end()
 })
@@ -112,7 +112,7 @@ test('fails if ambiguous match', t => {
     county: /c/,
     cases: /c/
   }
-  const re = /Multiple matches for county \(\/c\/\) in headings county; cases/
+  const re = /Multiple matches for county in mapping/
   t.throws(() => { propertyColumnIndices(headings, mapping) }, re)
   t.end()
 })
@@ -122,7 +122,7 @@ test('fails if ambiguous match due to bad headings', t => {
   const mapping = {
     cases: 'cases'
   }
-  const re = /Multiple matches for cases \(cases\) in headings cases; cases/
+  const re = /Duplicate mapping of cases to indices 0 and 1/
   t.throws(() => { propertyColumnIndices(headings, mapping) }, re)
   t.end()
 })
@@ -131,10 +131,14 @@ test('can use array of matchers', t => {
   headings = [ 'apples', 'bats', 'cats', 'dogs' ]
   const mapping = {
     cases: [ 'apples', 'ants' ],
+    tested: [ 'bats' ],
+    hospitalized: [ 'cats' ],
     deaths: [ /^d/, 'elephants' ]
   }
   const expected = {
     cases: 0,
+    tested: 1,
+    hospitalized: 2,
     deaths: 3
   }
   assertIndicesEqual(t, mapping, headings, expected)
@@ -144,9 +148,11 @@ test('can use array of matchers', t => {
 test('array of matchers fails if matches multiple columns', t => {
   headings = [ 'apples', 'bats', 'cats', 'dogs' ]
   const mapping = {
-    cases: [ 'apples', 'dogs' ]
+    cases: [ 'apples', 'dogs' ],
+    tested: 'bats',
+    deaths: 'cats'
   }
-  const re = /Multiple matches for cases \(apples; dogs\) in headings apples; bats; cats; dogs/
+  const re = /Duplicate mapping of cases to indices 0 and 3/
   t.throws(() => { propertyColumnIndices(headings, mapping) }, re)
   t.end()
 })
@@ -157,7 +163,7 @@ test('fails if multiple matchers match the same column', t => {
     cases: [ 'apples' ],
     deaths: [ /pples/, 'elephants' ]
   }
-  const re = /Multiple matches for same heading/
+  const re = /Multiple matches for apples in mapping/
   t.throws(() => { propertyColumnIndices(headings, mapping) }, re)
   t.end()
 })

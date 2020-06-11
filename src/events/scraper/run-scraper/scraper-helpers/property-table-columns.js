@@ -96,6 +96,9 @@ function propertyColumnIndices (headings, mapping) {
   const result = {}
   headings.forEach((heading, index) => {
     const p = findUniquePropertyForHeading(heading, mapping)
+    if (result[p] !== undefined) {
+      throw new Error(`Duplicate mapping of ${p} to indices ${result[p]} and ${index}`)
+    }
     result[p] = index
   })
   return result
