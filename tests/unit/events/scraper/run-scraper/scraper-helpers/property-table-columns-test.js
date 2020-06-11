@@ -1,7 +1,7 @@
 const test = require('tape')
 
 const sutpath = '../../../../../../src/events/scraper/run-scraper/scraper-helpers/property-table-columns.js'
-const { propertyColumnIndices, createHash } = require(sutpath)
+const { propertyColumnIndices, tryPropertyColumnIndices, createHash } = require(sutpath)
 
 /**
  * propertyColumnIndices tests
@@ -27,14 +27,24 @@ test('returns indices for exact text matches', t => {
   t.end()
 })
 
-test('headings can be ignored', t => {
+test('all headings must be mapped', t => {
+  const mapping = {
+    county: 'county'
+  }
+  const re = new RegExp('Missing mapping for cases')
+  t.throws(() => { propertyColumnIndices(headings, mapping) }, re)
+  t.end()
+})
+
+test.only('tryPropertyColumnIndices ignores unknown headings', t => {
   const mapping = {
     county: 'county'
   }
   const expected = {
     county: 0
   }
-  assertIndicesEqual(t, mapping, headings, expected)
+  const actual = tryPropertyColumnIndices(headings, mapping)
+  t.deepEqual(actual, expected)
   t.end()
 })
 

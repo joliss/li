@@ -21,17 +21,29 @@ function assertAllKeysAreInSchema (mapping) {
   assert(badKeys.length === 0, `Invalid keys in mapping: ${badKeys.join()}`)
 }
 
+function matchesHeading (matcher, heading) {
+  const makeSlug = s => slugify(s, { lower: true })
+  if (is.string(matcher) && makeSlug(heading).includes(makeSlug(matcher)))
+    return true
+  if (is.regexp(matcher) && heading.match(matcher))
+    return true
+  return false
+}
+
 function findUniqueMatch (headings, key, matchers) {
   if (!is.array(matchers))
     matchers = [ matchers ]
   const indices = []
-  const makeSlug = s => slugify(s, { lower: true })
+  const unmatchedHeadings = []
   for (var i = 0; i < headings.length; i++) {
     matchers.forEach(m => {
-      if (is.string(m) && makeSlug(headings[i]).includes(makeSlug(m)))
+      let found = false
+      if (matchesHeading(m, headings[i])) {
         indices.push(i)
-      if (is.regexp(m) && headings[i].match(m))
-        indices.push(i)
+        found = true
+      }
+      if (!found)
+        unmatchedHeadings.push(headings[i])
     })
   }
   const errMsg = `matches for ${key} (${matchers.join('; ')}) in headings ${headings.join('; ')}`
@@ -39,7 +51,11 @@ function findUniqueMatch (headings, key, matchers) {
     throw new Error(`No ${errMsg}`)
   if (indices.length > 1)
     throw new Error(`Multiple ${errMsg}`)
-  return indices[0]
+
+  return {
+    result: indices[0],
+    unmatched: unmatchedHeadings
+  }
 }
 
 /** Find indexes for property columns in a table's headings.
@@ -61,15 +77,42 @@ function findUniqueMatch (headings, key, matchers) {
 function propertyColumnIndices (headings, mapping) {
   assertAllKeysAreInSchema(mapping)
   const result = {}
+  let unmatched = []
   Object.keys(mapping).forEach(k => {
-    result[k] = findUniqueMatch(headings, k, mapping[k])
+    const m = findUniqueMatch(headings, k, mapping[k])
+    result[k] = m.result
+    unmatched = unmatched.concat(m.unmatched)
   })
   const indices = Object.values(result)
   const uniqueIndices = Array.from(new Set(indices))
   if (indices.length !== uniqueIndices.length)
     throw new Error('Multiple matches for same heading')
+  if (unmatched.length !== 0)
+    throw new Error(`Missing mapping for ${unmatched.join(', ')}`)
   return result
 }
+
+
+function tryPropertyColumnIndices (headings, mapping) {
+  assertAllKeysAreInSchema(mapping)
+  const result = {}
+  let unmatched = []
+  Object.keys(mapping).forEach(k => {
+    const m = findUniqueMatch(headings, k, mapping[k])
+    result[k] = m.result
+    unmatched = unmatched.concat(m.unmatched)
+  })
+  const indices = Object.values(result)
+  const uniqueIndices = Array.from(new Set(indices))
+  if (indices.length !== uniqueIndices.length)
+    throw new Error('Multiple matches for same heading')
+  /*
+  if (unmatched.length !== 0)
+    throw new Error(`Missing mapping for ${unmatched.join(', ')}`)
+*/
+  return result
+}
+
 
 /** Helper method: make a hash. */
 function createHash (propertyIndices, arr) {
@@ -86,5 +129,6 @@ function createHash (propertyIndices, arr) {
 
 module.exports = {
   propertyColumnIndices,
+  tryPropertyColumnIndices,
   createHash
 }
