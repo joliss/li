@@ -61,6 +61,16 @@ test('text matches are case-insensitive and do not have to match full string', t
   t.end()
 })
 
+/** Schema keys are hardcoded in the sut file. */
+test('all mapping destination values must exist in schema', t => {
+  const mapping = {
+    invalid_key: 'something'
+  }
+  const re = new RegExp('Invalid keys in mapping: invalid_key')
+  t.throws(() => { propertyColumnIndices(headings, mapping) }, re)
+  t.end()
+})
+
 test('can use regexes', t => {
   const mapping = {
     county: /COUNTY/i,

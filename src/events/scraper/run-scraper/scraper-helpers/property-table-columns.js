@@ -1,5 +1,25 @@
 const is = require('is')
+const assert = require('assert')
 const slugify = require('slugify')
+
+const schemaKeys = [
+  'active',
+  'cases',
+  'county',
+  'deaths',
+  'hospitalized',
+  'icu',
+  'recovered',
+  'state',
+  'tested',
+  'testedNegative', // Not in final schema, used for negative results to then combine with cases to get `tested` number.
+  null // Use when we want to discard the column.
+]
+
+function assertAllKeysAreInSchema (mapping) {
+  const badKeys = Object.keys(mapping).filter(v => !schemaKeys.includes(v))
+  assert(badKeys.length === 0, `Invalid keys in mapping: ${badKeys.join()}`)
+}
 
 function findUniqueMatch (headings, key, matchers) {
   if (!is.array(matchers))
@@ -39,6 +59,7 @@ function findUniqueMatch (headings, key, matchers) {
  *  }
  */
 function propertyColumnIndices (headings, mapping) {
+  assertAllKeysAreInSchema(mapping)
   const result = {}
   Object.keys(mapping).forEach(k => {
     result[k] = findUniqueMatch(headings, k, mapping[k])
