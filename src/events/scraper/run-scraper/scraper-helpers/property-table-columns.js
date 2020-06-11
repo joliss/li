@@ -54,27 +54,6 @@ function findUniquePropertyForHeading (heading, mapping) {
 }
 
 
-function findUniqueMatch (headings, key, matchers) {
-  if (!is.array(matchers))
-    matchers = [ matchers ]
-  const indices = []
-
-  for (var i = 0; i < headings.length; i++) {
-    matchers.forEach(m => {
-      if (matchesHeading(m, headings[i])) {
-        indices.push(i)
-      }
-    })
-  }
-  const errMsg = `matches for ${key} (${matchers.join('; ')}) in headings ${headings.join('; ')}`
-  if (indices.length === 0)
-    throw new Error(`No ${errMsg}`)
-  if (indices.length > 1)
-    throw new Error(`Multiple ${errMsg}`)
-
-  return indices[0]
-}
-
 /** Find indexes for property columns in a table's headings.
  *
  * Example:
