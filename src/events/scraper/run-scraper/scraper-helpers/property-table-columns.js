@@ -1,12 +1,14 @@
 const is = require('is')
+const slugify = require('slugify')
 
 function findUniqueMatch (headings, key, matchers) {
   if (!is.array(matchers))
     matchers = [ matchers ]
   const indices = []
+  const makeSlug = s => slugify(s, { lower: true })
   for (var i = 0; i < headings.length; i++) {
     matchers.forEach(m => {
-      if (is.string(m) && headings[i] === m)
+      if (is.string(m) && makeSlug(headings[i]).includes(makeSlug(m)))
         indices.push(i)
       if (is.regexp(m) && headings[i].match(m))
         indices.push(i)

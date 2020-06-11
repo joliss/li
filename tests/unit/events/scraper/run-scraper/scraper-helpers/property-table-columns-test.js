@@ -3,9 +3,13 @@ const test = require('tape')
 const sutpath = '../../../../../../src/events/scraper/run-scraper/scraper-helpers/property-table-columns.js'
 const { propertyColumnIndices, createHash } = require(sutpath)
 
+/**
+ * propertyColumnIndices tests
+ */
+
 let headings = [ 'county', 'cases' ]
 
-function assertIndicesEqual (t, mapping, expected) {
+function assertIndicesEqual (t, mapping, headings, expected) {
   const actual = propertyColumnIndices(headings, mapping)
   t.deepEqual(actual, expected)
 }
@@ -19,7 +23,7 @@ test('returns indices for exact text matches', t => {
     county: 0,
     cases: 1
   }
-  assertIndicesEqual(t, mapping, expected)
+  assertIndicesEqual(t, mapping, headings, expected)
   t.end()
 })
 
@@ -30,7 +34,30 @@ test('headings can be ignored', t => {
   const expected = {
     county: 0
   }
-  assertIndicesEqual(t, mapping, expected)
+  assertIndicesEqual(t, mapping, headings, expected)
+  t.end()
+})
+
+test('text matches are case-insensitive and do not have to match full string', t => {
+  const testcases = [
+    'case', 'cases', 'CASES', 'Cases',
+    'positive cases', 'total cases',
+    'number of cases',
+    'base', 'vases', 'phase'
+  ]
+  testcases.forEach(c => {
+    const headings = [ c ]
+
+    const mapping = {
+      cases: 'as'  // This matches every test case above.
+    }
+    const expected = {
+      cases: 0
+    }
+
+    assertIndicesEqual(t, mapping, headings, expected)
+  })
+
   t.end()
 })
 
@@ -43,7 +70,7 @@ test('can use regexes', t => {
     county: 0,
     cases: 1
   }
-  assertIndicesEqual(t, mapping, expected)
+  assertIndicesEqual(t, mapping, headings, expected)
   t.end()
 })
 
@@ -87,7 +114,7 @@ test('can use array of matchers', t => {
     cases: 0,
     deaths: 3
   }
-  assertIndicesEqual(t, mapping, expected)
+  assertIndicesEqual(t, mapping, headings, expected)
   t.end()
 })
 
