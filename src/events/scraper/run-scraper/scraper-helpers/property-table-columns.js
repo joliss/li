@@ -43,9 +43,11 @@ function findAllPropertiesForHeading (heading, mapping) {
   return props
 }
 
-function findUniquePropertyForHeading (heading, mapping) {
+function findUniquePropertyForHeading (heading, mapping, throwIfNotMapped = true) {
   const props = findAllPropertiesForHeading(heading, mapping)
   const errMsg = `matches for ${heading} in mapping`
+  if (!throwIfNotMapped && props.length === 0)
+    return null
   if (props.length === 0)
     throw new Error(`No ${errMsg}`)
   if (props.length > 1)
@@ -70,23 +72,27 @@ function findUniquePropertyForHeading (heading, mapping) {
  *    deaths: 3
  *  }
  */
-function propertyColumnIndices (headings, mapping) {
+function _propertyColumnIndices (headings, mapping, throwIfNotMapped) {
   assertAllKeysAreInSchema(mapping)
   const result = {}
   headings.forEach((heading, index) => {
-    const p = findUniquePropertyForHeading(heading, mapping)
+    const p = findUniquePropertyForHeading(heading, mapping, throwIfNotMapped)
     if (result[p] !== undefined) {
       throw new Error(`Duplicate mapping of ${p} to indices ${result[p]} and ${index}`)
     }
-    result[p] = index
+    if (p)
+      result[p] = index
   })
   return result
 }
 
+function propertyColumnIndices (headings, mapping) {
+  return _propertyColumnIndices(headings, mapping, true)
+}
 
-// TODO - refactor this, exactly same as other method.
+
 function tryPropertyColumnIndices (headings, mapping) {
-  return propertyColumnIndices(headings, mapping)
+  return _propertyColumnIndices(headings, mapping, false)
 }
 
 /** Helper method: make a hash. */

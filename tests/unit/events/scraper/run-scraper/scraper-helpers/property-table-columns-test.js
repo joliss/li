@@ -36,8 +36,6 @@ test('all headings must be mapped', t => {
   t.end()
 })
 
-/*
-// TODO fix this
 test('tryPropertyColumnIndices ignores unknown headings', t => {
   const mapping = {
     county: 'county'
@@ -49,7 +47,6 @@ test('tryPropertyColumnIndices ignores unknown headings', t => {
   t.deepEqual(actual, expected)
   t.end()
 })
-*/
 
 test('text matches are case-insensitive and do not have to match full string', t => {
   const testcases = [
