@@ -30,17 +30,10 @@ function matchesHeading (heading, matcher) {
   return false
 }
 
-// TODO - refactor, can use filter i think
 function findAllPropertiesForHeading (heading, mapping) {
-  const props = []
-  Object.keys(mapping).forEach(prop => {
-    [ mapping[prop] ].flat().forEach(m => {
-      if (matchesHeading(heading, m)) {
-        props.push(prop)
-      }
-    })
+  return Object.keys(mapping).filter(prop => {
+    return [ mapping[prop] ].flat().some(m => matchesHeading(heading, m))
   })
-  return props
 }
 
 function findUniquePropertyForHeading (heading, mapping, throwIfNotMapped = true) {
