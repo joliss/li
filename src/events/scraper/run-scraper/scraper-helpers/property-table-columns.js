@@ -21,18 +21,20 @@ function assertAllKeysAreInSchema (mapping) {
   assert(badKeys.length === 0, `Invalid keys in mapping: ${badKeys.join()}`)
 }
 
-function matchesHeading (heading, matcher) {
-  const makeSlug = s => slugify(s, { lower: true })
-  if (is.string(matcher) && makeSlug(heading).includes(makeSlug(matcher)))
-    return true
-  if (is.regexp(matcher) && heading.match(matcher))
-    return true
-  return false
-}
-
 function findAllPropertiesForHeading (heading, mapping) {
+  function toArray (a) {
+    return [ a ].flat()
+  }
+
+  function matchesHeading (heading, m) {
+    const makeSlug = s => slugify(s, { lower: true })
+    return false ||
+      (is.string(m) && makeSlug(heading).includes(makeSlug(m))) ||
+      (is.regexp(m) && heading.match(m))
+  }
+
   return Object.keys(mapping).filter(prop => {
-    return [ mapping[prop] ].flat().some(m => matchesHeading(heading, m))
+    return toArray(mapping[prop]).some(m => matchesHeading(heading, m))
   })
 }
 
