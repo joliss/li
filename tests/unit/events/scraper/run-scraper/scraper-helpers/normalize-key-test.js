@@ -1,6 +1,6 @@
 const test = require('tape')
 
-const sutpath = '../../../../../../src/events/scraper/run-scraper/scraper-helpers/property-table-columns.js'
+const sutpath = '../../../../../../src/events/scraper/run-scraper/scraper-helpers/normalize-key.js'
 const { propertyColumnIndices, normalizeKey, createHash } = require(sutpath)
 
 /**
