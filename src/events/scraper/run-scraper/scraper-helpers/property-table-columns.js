@@ -5,7 +5,7 @@ const slugify = require('slugify')
 
 /** Ensure the mapping only contains valid map 'destinations' (i.e.,
  * we're mapping headings to valid data dimensions). */
-function validateMappingKeys (mapping) {
+function _validateMappingKeys (mapping) {
   const validProperties = [
     'active',
     'cases',
@@ -30,7 +30,7 @@ function validateMappingKeys (mapping) {
 }
 
 /** Get array of all properties that a heading could map to. */
-function allPropertiesForHeading (heading, mapping) {
+function _allPropertiesForHeading (heading, mapping) {
 
   const toArray = a => [ a ].flat()
 
@@ -48,8 +48,8 @@ function allPropertiesForHeading (heading, mapping) {
 }
 
 /** Returns single property returned by using the mapping. */
-function propertyForHeading (heading, mapping) {
-  const props = allPropertiesForHeading(heading, mapping)
+function _propertyForHeading (heading, mapping) {
+  const props = _allPropertiesForHeading(heading, mapping)
   if (props.length === 0)
     throw new Error(`No matches for ${heading} in mapping`)
 
@@ -86,10 +86,10 @@ function propertyForHeading (heading, mapping) {
  *  This returns { cases: 0 }
  */
 function propertyColumnIndices (headings, mapping) {
-  validateMappingKeys(mapping)
+  _validateMappingKeys(mapping)
   const result = {}
   headings.forEach((heading, index) => {
-    const p = propertyForHeading(heading, mapping)
+    const p = _propertyForHeading(heading, mapping)
     if (result[p] !== undefined) {
       throw new Error(`Duplicate mapping of ${p} to indices ${result[p]} and ${index}`)
     }
@@ -101,8 +101,8 @@ function propertyColumnIndices (headings, mapping) {
 
 /** Normalizes a key to a proper domain key. */
 function normalizeKey (key, mapping) {
-  validateMappingKeys(mapping)
-  return propertyForHeading(key, mapping)
+  _validateMappingKeys(mapping)
+  return _propertyForHeading(key, mapping)
 }
 
 /** Helper method: make a hash. */
