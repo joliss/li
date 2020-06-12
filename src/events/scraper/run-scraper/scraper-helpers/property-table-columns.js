@@ -3,29 +3,29 @@ const assert = require('assert')
 const slugify = require('slugify')
 
 
-/** The set of keys that are allowed in the mapping.  This ensures
- * that we're actually mapping headings to permissible data points. */
-const validProperties = [
-  'active',
-  'cases',
-  'county',
-  'deaths',
-  'hospitalized',
-  'icu',
-  'recovered',
-  'state',
-  'tested',
-
-  // Not in final schema, used for negative results to then combine
-  // with cases to get `tested` number.
-  'testedNegative',
-
-  // Use when we want to discard the heading/column.
-  null
-]
-
+/** Ensure the mapping only contains valid map 'destinations' (i.e.,
+ * we're mapping headings to valid data dimensions). */
 function validateMappingKeys (mapping) {
-  const badKeys = Object.keys(mapping).filter(k => k !== 'null').filter(k => !validProperties.includes(k))
+  const validProperties = [
+    'active',
+    'cases',
+    'county',
+    'deaths',
+    'hospitalized',
+    'icu',
+    'recovered',
+    'state',
+    'tested',
+    'testedNegative',  // Not in final schema, used for negative
+                       // results to then combine with cases to get
+                       // `tested` number.
+    null               // Use when we want to discard the
+                       // heading/column.
+  ]
+
+  const badKeys = Object.keys(mapping).
+    filter(k => k !== 'null').
+    filter(k => !validProperties.includes(k))
   assert(badKeys.length === 0, `Invalid keys in mapping: ${badKeys.join()}`)
 }
 
