@@ -1,7 +1,36 @@
 const test = require('tape')
 
 const sutpath = '../../../../../../src/events/scraper/run-scraper/scraper-helpers/property-table-columns.js'
-const { propertyColumnIndices, createHash } = require(sutpath)
+const { propertyColumnIndices, normalizeKey, createHash } = require(sutpath)
+
+/**
+ * normalizeKey tests
+ */
+
+function assertNormalizedKeyEquals (t, key, mapping, expected) {
+  const actual = normalizeKey(key, mapping)
+  t.equal(actual, expected)
+}
+
+test('single string can be mapped to a property if fragment matches', t => {
+  const headings = [
+    'case', 'cases', 'CASES', 'Cases',
+    'positive cases', 'total cases',
+    'number of cases',
+    'base', 'vases', 'phase'  // !
+  ]
+  const mapping = { cases: 'ase' }
+  headings.forEach(heading => {
+    assertNormalizedKeyEquals(t, heading, mapping, 'cases')
+  })
+  t.end()
+})
+
+test.only('multiple entries in map can resolve to the same thing', t => {
+  const mapping = { cases: [ 'case', 'positive' ] }
+  assertNormalizedKeyEquals(t, 'positive cases', mapping, 'cases')
+  t.end()
+})
 
 /**
  * propertyColumnIndices tests

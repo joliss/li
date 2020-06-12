@@ -87,6 +87,11 @@ function propertyColumnIndices (headings, mapping) {
   return result
 }
 
+/** Normalizes a key to a proper domain key. */
+function normalizeKey (key, mapping) {
+  return findUniquePropertyForHeading(key, mapping)
+}
+
 /** Helper method: make a hash. */
 function createHash (propertyIndices, arr) {
   return Object.entries(propertyIndices).reduce((hsh, pair) => {
@@ -102,5 +107,6 @@ function createHash (propertyIndices, arr) {
 
 module.exports = {
   propertyColumnIndices,
-  createHash
+  createHash,
+  normalizeKey
 }
