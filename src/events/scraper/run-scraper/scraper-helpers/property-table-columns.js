@@ -38,16 +38,15 @@ function findAllPropertiesForHeading (heading, mapping) {
 
 function findUniquePropertyForHeading (heading, mapping) {
   const props = findAllPropertiesForHeading(heading, mapping)
-  const errMsg = `matches for ${heading} in mapping`
   if (props.length === 0)
-    throw new Error(`No ${errMsg}`)
+    throw new Error(`No matches for ${heading} in mapping`)
 
   // Mapping to a null is valid ... this just means "ignore".
   const realProps = props.filter(p => p && p !== 'null')
   if (realProps.length === 0)
     return null
   if (realProps.length > 1)
-    throw new Error(`Multiple ${errMsg}`)
+    throw new Error(`Multiple matches for ${heading} in mapping`)
   return realProps[0]
 }
 
