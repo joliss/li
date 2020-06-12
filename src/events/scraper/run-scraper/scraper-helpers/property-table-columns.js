@@ -21,12 +21,10 @@ function assertAllKeysAreInSchema (mapping) {
   assert(badKeys.length === 0, `Invalid keys in mapping: ${badKeys.join()}`)
 }
 
-function findAllPropertiesForHeading (heading, mapping) {
-  function toArray (a) {
-    return [ a ].flat()
-  }
+function allPropertiesForHeading (heading, mapping) {
+  const toArray = a => [ a ].flat()
 
-  function matchesHeading (heading, m) {
+  const matchesHeading = m => {
     const makeSlug = s => slugify(s, { lower: true })
     return false ||
       (is.string(m) && makeSlug(heading).includes(makeSlug(m))) ||
@@ -34,12 +32,12 @@ function findAllPropertiesForHeading (heading, mapping) {
   }
 
   return Object.keys(mapping).filter(prop => {
-    return toArray(mapping[prop]).some(m => matchesHeading(heading, m))
+    return toArray(mapping[prop]).some(matchesHeading)
   })
 }
 
-function findUniquePropertyForHeading (heading, mapping) {
-  const props = findAllPropertiesForHeading(heading, mapping)
+function propertyForHeading (heading, mapping) {
+  const props = allPropertiesForHeading(heading, mapping)
   if (props.length === 0)
     throw new Error(`No matches for ${heading} in mapping`)
 
@@ -79,7 +77,7 @@ function propertyColumnIndices (headings, mapping) {
   assertAllKeysAreInSchema(mapping)
   const result = {}
   headings.forEach((heading, index) => {
-    const p = findUniquePropertyForHeading(heading, mapping)
+    const p = propertyForHeading(heading, mapping)
     if (result[p] !== undefined) {
       throw new Error(`Duplicate mapping of ${p} to indices ${result[p]} and ${index}`)
     }
@@ -92,7 +90,7 @@ function propertyColumnIndices (headings, mapping) {
 /** Normalizes a key to a proper domain key. */
 function normalizeKey (key, mapping) {
   assertAllKeysAreInSchema(mapping)
-  return findUniquePropertyForHeading(key, mapping)
+  return propertyForHeading(key, mapping)
 }
 
 /** Helper method: make a hash. */
