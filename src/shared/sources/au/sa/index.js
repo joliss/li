@@ -72,7 +72,7 @@ module.exports = {
           }
         }
       ],
-      scrape ($, date, { normalizeKey, normalizeTable, transposeArrayOfArrays }) {
+      scrape ($, date, { getSchemaKeyFromHeading, normalizeTable, transposeArrayOfArrays }) {
         const normalizedTable = transposeArrayOfArrays(
           normalizeTable({ $, tableSelector: 'table:first-of-type' })
         )
@@ -81,7 +81,7 @@ module.exports = {
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = normalizeKey({ heading, schemaKeysByHeadingFragment })
+          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
         })
 
         const dataRow = normalizedTable[normalizedTable.length - 1]
@@ -106,7 +106,7 @@ module.exports = {
           url: 'https://dpc.geohub.sa.gov.au/server/rest/services/Hosted/DHW_COVID_19_PositiveCases_POLY/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=false&maxAllowableOffset=&geometryPrecision=&outSR=&having=&gdbVersion=&historicMoment=&returnDistinctValues=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&multipatchOption=xyFootprint&resultOffset=&resultRecordCount=&returnTrueCurves=false&returnCentroid=false&sqlFormat=none&resultType=&f=pjson'
         }
       ],
-      scrape ($, date, { cumulateObjects, normalizeKey }) {
+      scrape ($, date, { cumulateObjects, getSchemaKeyFromHeading }) {
         assert($.features.length > 0, 'features are unreasonable')
         const attributes = $.features.map(({ attributes }) => attributes)
 
@@ -125,7 +125,7 @@ module.exports = {
 
         const data = {}
         for (const [ heading, value ] of Object.entries(cumulateObjects(dataByRegion))) {
-          const key = normalizeKey({ heading, schemaKeysByHeadingFragment })
+          const key = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
           if (!data[key]) {
             data[key] = 0
           }

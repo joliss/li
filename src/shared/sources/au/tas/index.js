@@ -30,7 +30,7 @@ module.exports = {
           url: 'https://www.coronavirus.tas.gov.au/facts/cases-and-testing-updates'
         }
       ],
-      scrape ($, date, { normalizeKey, normalizeTable, transposeArrayOfArrays }) {
+      scrape ($, date, { getSchemaKeyFromHeading, normalizeTable, transposeArrayOfArrays }) {
         const normalizedTable = transposeArrayOfArrays(
           normalizeTable({ $, tableSelector: '#table12451' })
         )
@@ -38,7 +38,7 @@ module.exports = {
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = normalizeKey({ heading, schemaKeysByHeadingFragment })
+          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
         })
 
         const dataRow = normalizedTable[normalizedTable.length - 1]

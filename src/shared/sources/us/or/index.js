@@ -78,7 +78,7 @@ module.exports = {
         {
           assertTotalsAreReasonable,
           getDataWithTestedNegativeApplied,
-          normalizeKey,
+          getSchemaKeyFromHeading,
           normalizeTable,
         }
       ) {
@@ -90,7 +90,7 @@ module.exports = {
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = normalizeKey({
+          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({
             heading,
             schemaKeysByHeadingFragment,
           })

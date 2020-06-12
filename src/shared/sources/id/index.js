@@ -29,7 +29,7 @@ module.exports = {
           url: 'https://www.kemkes.go.id/'
         }
       ],
-      scrape ($, date, { normalizeKey, normalizeTable, transposeArrayOfArrays }) {
+      scrape ($, date, { getSchemaKeyFromHeading, normalizeTable, transposeArrayOfArrays }) {
         const normalizedTable = transposeArrayOfArrays(
           normalizeTable({ $, tableSelector: '.covid-case-container table' })
         )
@@ -37,7 +37,7 @@ module.exports = {
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = normalizeKey({
+          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({
             heading: heading.replace('(Positif COVID-19)', ''),
             schemaKeysByHeadingFragment
           })

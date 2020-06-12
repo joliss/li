@@ -10,6 +10,8 @@ const crawl = [
   },
 ]
 
+const schemaKeysByHeadingFragment = { deaths: 'deaths', recovered: 'recovered', 'total cases': 'cases' }
+
 module.exports = {
   county: 'Kings County',
   state: 'iso2:US-CA',
@@ -32,7 +34,7 @@ module.exports = {
     {
       startDate: '2020-04-13',
       crawl,
-      scrape ($, date, { normalizeKey }) {
+      scrape ($, date, { getSchemaKeyFromHeading }) {
         const $rows = $('ul:contains("Total Cases") > li')
         const data = {}
         $rows.each((index, row) => {
@@ -41,9 +43,7 @@ module.exports = {
             .text()
             .split('\n')[0]
             .split(': ')
-
-          const mapping = { deaths: 'deaths', recovered: 'recovered', 'cases': 'total cases' }
-          const key = normalizeKey(heading, mapping)
+          const key = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
           data[key] = parse.number(value)
         })
 

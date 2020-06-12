@@ -22,7 +22,7 @@ module.exports = {
             'https://doh.vi.gov/covid19usvi'
         }
       ],
-      scrape ($, date, { getDataWithTestedNegativeApplied, normalizeKey }) {
+      scrape ($, date, { getDataWithTestedNegativeApplied, getSchemaKeyFromHeading }) {
         const schemaKeysByHeadingFragment = {
           update: null,
           'attention deficit': null,
@@ -45,7 +45,7 @@ module.exports = {
               .text()
               .toLowerCase()
             const [ heading, valueIncludingParenthetical ] = text.split(':')
-            const key = normalizeKey({ heading, schemaKeysByHeadingFragment })
+            const key = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
             const [ valueWithSlash ] = valueIncludingParenthetical.split('(')
             const [ value ] = valueWithSlash.split('/')
             if (key) {
@@ -68,7 +68,7 @@ module.exports = {
             'https://doh.vi.gov/covid19usvi'
         }
       ],
-      scrape ($, date, { getDataWithTestedNegativeApplied, normalizeKey }) {
+      scrape ($, date, { getDataWithTestedNegativeApplied, getSchemaKeyFromHeading }) {
         const schemaKeysByHeadingFragment = {
           active: null,
           deaths: 'deaths',
@@ -85,7 +85,7 @@ module.exports = {
           const heading = $(paragraph)
             .find('.views-label')
             .text()
-          const key = normalizeKey({ heading, schemaKeysByHeadingFragment })
+          const key = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
           if (key) {
             const value = $(paragraph)
               .find('.field-content')

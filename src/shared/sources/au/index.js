@@ -32,13 +32,13 @@ module.exports = {
             'https://www.health.gov.au/news/health-alerts/novel-coronavirus-2019-ncov-health-alert/coronavirus-covid-19-current-situation-and-case-numbers'
         }
       ],
-      scrape ($, date, { assertTotalsAreReasonable, getIso2FromName, normalizeKey, normalizeTable }) {
+      scrape ($, date, { assertTotalsAreReasonable, getIso2FromName, getSchemaKeyFromHeading, normalizeTable }) {
         const normalizedTable = normalizeTable({ $, tableSelector: '.health-table__responsive > table' })
 
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = normalizeKey({ heading, schemaKeysByHeadingFragment })
+          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
         })
 
         // Create new array with just the state data (no headings, comments, totals)
@@ -82,14 +82,14 @@ module.exports = {
           url: 'https://www.health.gov.au/resources/total-covid-19-cases-and-deaths-by-states-and-territories'
         }
       ],
-      scrape ($, date, { assertTotalsAreReasonable, normalizeKey, normalizeTable }) {
+      scrape ($, date, { assertTotalsAreReasonable, getSchemaKeyFromHeading, normalizeTable }) {
         const normalizedTable = normalizeTable({ $, tableSelector: '.ng-scope table' })
 
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
           dataKeysByColumnIndex[index] = heading
-            ? normalizeKey({ heading, schemaKeysByHeadingFragment })
+            ? getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
             : null
         })
 

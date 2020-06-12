@@ -37,13 +37,13 @@ module.exports = {
           }
         }
       ],
-      scrape ($, date, { normalizeKey, normalizeTable }) {
+      scrape ($, date, { getSchemaKeyFromHeading, normalizeTable }) {
         const normalizedTable = normalizeTable({ $, tableSelector: '#content table' })
 
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = normalizeKey({ heading, schemaKeysByHeadingFragment })
+          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
         })
 
         const dataRow = normalizedTable.find(row => row.some(cell => cell === 'Total'))

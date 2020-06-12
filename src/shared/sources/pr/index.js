@@ -31,13 +31,13 @@ module.exports = {
           url: 'http://www.salud.gov.pr/Pages/coronavirus.aspx'
         }
       ],
-      scrape ($, date, { normalizeKey, normalizeTable }) {
+      scrape ($, date, { getSchemaKeyFromHeading, normalizeTable }) {
         const normalizedTable = normalizeTable({ $, tableSelector: 'table:contains("MUERTES")' })
 
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = normalizeKey({
+          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({
             heading: heading,
             schemaKeysByHeadingFragment
           })

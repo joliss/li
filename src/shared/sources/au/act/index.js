@@ -28,7 +28,7 @@ module.exports = {
           url: 'https://www.health.act.gov.au/about-our-health-system/novel-coronavirus-covid-19'
         }
       ],
-      scrape ($, date, { getDataWithTestedNegativeApplied, normalizeKey }) {
+      scrape ($, date, { getDataWithTestedNegativeApplied, getSchemaKeyFromHeading }) {
         const $table = $('.statuscontent')
         const $trs = $table.find('div')
         const data = {
@@ -38,7 +38,7 @@ module.exports = {
         $trs.each((index, tr) => {
           const $tr = $(tr)
           const [ heading, value ] = $tr.text().split(': ')
-          const key = normalizeKey({ heading, schemaKeysByHeadingFragment })
+          const key = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
           if (key) {
             data[key] = parse.number(value)
           }
@@ -58,7 +58,7 @@ module.exports = {
         }
       ],
       scrape ($, date, {
-        getDataWithTestedNegativeApplied, normalizeKey, transposeArrayOfArrays, normalizeTable
+        getDataWithTestedNegativeApplied, getSchemaKeyFromHeading, transposeArrayOfArrays, normalizeTable
       }) {
         const normalizedTable = transposeArrayOfArrays(
           normalizeTable({ $, tableSelector: 'h2:contains("Cases") + table' })
@@ -67,7 +67,7 @@ module.exports = {
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = normalizeKey({ heading, schemaKeysByHeadingFragment })
+          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
         })
 
         const dataRow = normalizedTable[normalizedTable.length - 1]
@@ -94,7 +94,7 @@ module.exports = {
         }
       ],
       scrape ($, date, {
-        getDataWithTestedNegativeApplied, normalizeKey, transposeArrayOfArrays, normalizeTable
+        getDataWithTestedNegativeApplied, getSchemaKeyFromHeading, transposeArrayOfArrays, normalizeTable
       }) {
         const normalizedTable = transposeArrayOfArrays(
           normalizeTable({ $, tableSelector: '.spf-article-card--tabular table' })
@@ -103,7 +103,7 @@ module.exports = {
         const headingRowIndex = 0
         const dataKeysByColumnIndex = []
         normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = normalizeKey({ heading, schemaKeysByHeadingFragment })
+          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({ heading, schemaKeysByHeadingFragment })
         })
 
         const dataRow = normalizedTable[normalizedTable.length - 1]
