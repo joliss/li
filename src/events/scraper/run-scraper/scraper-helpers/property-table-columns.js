@@ -2,7 +2,10 @@ const is = require('is')
 const assert = require('assert')
 const slugify = require('slugify')
 
-const schemaKeys = [
+
+/** The set of keys that are allowed in the mapping.  This ensures
+ * that we're actually mapping headings to permissible data points. */
+const validProperties = [
   'active',
   'cases',
   'county',
@@ -12,22 +15,30 @@ const schemaKeys = [
   'recovered',
   'state',
   'tested',
-  'testedNegative', // Not in final schema, used for negative results to then combine with cases to get `tested` number.
-  null // Use when we want to discard the column.
+
+  // Not in final schema, used for negative results to then combine
+  // with cases to get `tested` number.
+  'testedNegative',
+
+  // Use when we want to discard the heading/column.
+  null
 ]
 
-function assertAllKeysAreInSchema (mapping) {
-  const badKeys = Object.keys(mapping).filter(k => k !== 'null').filter(k => !schemaKeys.includes(k))
+function validateMappingKeys (mapping) {
+  const badKeys = Object.keys(mapping).filter(k => k !== 'null').filter(k => !validProperties.includes(k))
   assert(badKeys.length === 0, `Invalid keys in mapping: ${badKeys.join()}`)
 }
 
+/** Get array of all properties that a heading could map to. */
 function allPropertiesForHeading (heading, mapping) {
+
   const toArray = a => [ a ].flat()
 
+  const slugged = s => slugify(s, { lower: true })
+
   const matchesHeading = m => {
-    const makeSlug = s => slugify(s, { lower: true })
     return false ||
-      (is.string(m) && makeSlug(heading).includes(makeSlug(m))) ||
+      (is.string(m) && slugged(heading).includes(slugged(m))) ||
       (is.regexp(m) && heading.match(m))
   }
 
@@ -36,6 +47,7 @@ function allPropertiesForHeading (heading, mapping) {
   })
 }
 
+/** Returns single property returned by using the mapping. */
 function propertyForHeading (heading, mapping) {
   const props = allPropertiesForHeading(heading, mapping)
   if (props.length === 0)
@@ -74,7 +86,7 @@ function propertyForHeading (heading, mapping) {
  *  This returns { cases: 0 }
  */
 function propertyColumnIndices (headings, mapping) {
-  assertAllKeysAreInSchema(mapping)
+  validateMappingKeys(mapping)
   const result = {}
   headings.forEach((heading, index) => {
     const p = propertyForHeading(heading, mapping)
@@ -89,7 +101,7 @@ function propertyColumnIndices (headings, mapping) {
 
 /** Normalizes a key to a proper domain key. */
 function normalizeKey (key, mapping) {
-  assertAllKeysAreInSchema(mapping)
+  validateMappingKeys(mapping)
   return propertyForHeading(key, mapping)
 }
 
