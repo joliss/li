@@ -62,10 +62,17 @@ function findUniquePropertyForHeading (heading, mapping) {
  *    deaths: [ /^d/, 'elephants' ]
  *  }
  *
- *  This returns {
- *    cases: 0,
- *    deaths: 3
+ *  This returns { cases: 0, deaths: 3 }
+ *
+ * If the key in mapping is 'null', the field matching it
+ * will be ignored:
+ *
+ *  const mapping = {
+ *    cases: [ 'apples', 'ants' ],
+ *    null: [ /^d/, 'elephants' ]
  *  }
+ *
+ *  This returns { cases: 0 }
  */
 function propertyColumnIndices (headings, mapping) {
   assertAllKeysAreInSchema(mapping)
