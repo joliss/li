@@ -89,6 +89,7 @@ function propertyColumnIndices (headings, mapping) {
 
 /** Normalizes a key to a proper domain key. */
 function normalizeKey (key, mapping) {
+  assertAllKeysAreInSchema(mapping)
   return findUniquePropertyForHeading(key, mapping)
 }
 

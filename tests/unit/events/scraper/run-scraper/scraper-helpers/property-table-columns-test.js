@@ -26,11 +26,52 @@ test('single string can be mapped to a property if fragment matches', t => {
   t.end()
 })
 
-test.only('multiple entries in map can resolve to the same thing', t => {
+test('multiple entries in map can resolve to the same thing', t => {
   const mapping = { cases: [ 'case', 'positive' ] }
   assertNormalizedKeyEquals(t, 'positive cases', mapping, 'cases')
   t.end()
 })
+
+test('unmapped heading throws', t => {
+  const mapping = { cases: 'cases' }
+  const testcases = [ 'apple', 'cayses', 'k' ]
+  testcases.forEach(c => {
+    t.throws(() => normalizeKey(c, mapping ), c)
+  })
+  t.end()
+})
+
+test('can map a key to null', t => {
+  const mapping = {
+    cases: [ 'case', 'positive' ],
+    null: [ 'other', 'another' ]
+  }
+  assertNormalizedKeyEquals(t, 'positive cases', mapping, 'cases')
+  assertNormalizedKeyEquals(t, 'cases', mapping, 'cases')
+  assertNormalizedKeyEquals(t, 'something other than that', mapping, null)
+  assertNormalizedKeyEquals(t, 'another thing', mapping, null)
+  t.end()
+})
+
+test('entry mapped to multiple distinct values fails', t => {
+  const mapping = {
+    cases: 'case',
+    deaths: 'death'
+  }
+  const errRe = /Multiple matches for deathlike_case in mapping/
+  t.throws(() => normalizeKey('deathlike_case', mapping), errRe)
+  t.end()
+})
+
+test('all mapping destination values must exist in schema', t => {
+  const mapping = {
+    invalid_mapping_key: 'positive'
+  }
+  const errRe = /Invalid keys in mapping: invalid_mapping_key/
+  t.throws(() => normalizeKey('positive', mapping), errRe)
+  t.end()
+})
+
 
 /**
  * propertyColumnIndices tests
