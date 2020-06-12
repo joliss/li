@@ -17,7 +17,7 @@ const schemaKeys = [
 ]
 
 function assertAllKeysAreInSchema (mapping) {
-  const badKeys = Object.keys(mapping).filter(v => !schemaKeys.includes(v))
+  const badKeys = Object.keys(mapping).filter(k => k !== 'null').filter(k => !schemaKeys.includes(k))
   assert(badKeys.length === 0, `Invalid keys in mapping: ${badKeys.join()}`)
 }
 
@@ -36,18 +36,20 @@ function findAllPropertiesForHeading (heading, mapping) {
   })
 }
 
-function findUniquePropertyForHeading (heading, mapping, throwIfNotMapped = true) {
+function findUniquePropertyForHeading (heading, mapping) {
   const props = findAllPropertiesForHeading(heading, mapping)
   const errMsg = `matches for ${heading} in mapping`
-  if (!throwIfNotMapped && props.length === 0)
-    return null
   if (props.length === 0)
     throw new Error(`No ${errMsg}`)
-  if (props.length > 1)
-    throw new Error(`Multiple ${errMsg}`)
-  return props[0]
-}
 
+  // Mapping to a null is valid ... this just means "ignore".
+  const realProps = props.filter(p => p && p !== 'null')
+  if (realProps.length === 0)
+    return null
+  if (realProps.length > 1)
+    throw new Error(`Multiple ${errMsg}`)
+  return realProps[0]
+}
 
 /** Find indexes for property columns in a table's headings.
  *
@@ -65,11 +67,11 @@ function findUniquePropertyForHeading (heading, mapping, throwIfNotMapped = true
  *    deaths: 3
  *  }
  */
-function _propertyColumnIndices (headings, mapping, throwIfNotMapped) {
+function propertyColumnIndices (headings, mapping) {
   assertAllKeysAreInSchema(mapping)
   const result = {}
   headings.forEach((heading, index) => {
-    const p = findUniquePropertyForHeading(heading, mapping, throwIfNotMapped)
+    const p = findUniquePropertyForHeading(heading, mapping)
     if (result[p] !== undefined) {
       throw new Error(`Duplicate mapping of ${p} to indices ${result[p]} and ${index}`)
     }
@@ -77,15 +79,6 @@ function _propertyColumnIndices (headings, mapping, throwIfNotMapped) {
       result[p] = index
   })
   return result
-}
-
-function propertyColumnIndices (headings, mapping) {
-  return _propertyColumnIndices(headings, mapping, true)
-}
-
-
-function tryPropertyColumnIndices (headings, mapping) {
-  return _propertyColumnIndices(headings, mapping, false)
 }
 
 /** Helper method: make a hash. */
@@ -103,6 +96,5 @@ function createHash (propertyIndices, arr) {
 
 module.exports = {
   propertyColumnIndices,
-  tryPropertyColumnIndices,
   createHash
 }

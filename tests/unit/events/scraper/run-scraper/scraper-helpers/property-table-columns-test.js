@@ -1,7 +1,7 @@
 const test = require('tape')
 
 const sutpath = '../../../../../../src/events/scraper/run-scraper/scraper-helpers/property-table-columns.js'
-const { propertyColumnIndices, tryPropertyColumnIndices, createHash } = require(sutpath)
+const { propertyColumnIndices, createHash } = require(sutpath)
 
 /**
  * propertyColumnIndices tests
@@ -36,15 +36,41 @@ test('all headings must be mapped', t => {
   t.end()
 })
 
-test('tryPropertyColumnIndices ignores unknown headings', t => {
+test('can ignore headings by mapping them to null', t => {
   const mapping = {
-    county: 'county'
+    county: 'county',
+    null: 'cases'
   }
   const expected = {
     county: 0
   }
-  const actual = tryPropertyColumnIndices(headings, mapping)
-  t.deepEqual(actual, expected)
+  assertIndicesEqual(t, mapping, headings, expected)
+  t.end()
+})
+
+test('can use null mapping as catch-all for unmapped headings', t => {
+  const mapping = {
+    county: 'county',
+    null: /.*/
+  }
+  const headings = [ 'county', 'something', 'else', 'here' ]
+  const expected = {
+    county: 0
+  }
+  assertIndicesEqual(t, mapping, headings, expected)
+  t.end()
+})
+
+test('can have several mappings all mapping to the same property', t => {
+  const mapping = {
+    county: [ 'county', 'ount', 'ty', /count/ ],
+    cases: 'cases'
+  }
+  const expected = {
+    county: 0,
+    cases: 1
+  }
+  assertIndicesEqual(t, mapping, headings, expected)
   t.end()
 })
 
