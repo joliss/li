@@ -10,8 +10,6 @@ const crawl = [
   },
 ]
 
-const schemaKeysByHeadingFragment = { deaths: 'deaths', recovered: 'recovered', 'total cases': 'cases' }
-
 module.exports = {
   county: 'Kings County',
   state: 'iso2:US-CA',
@@ -43,7 +41,9 @@ module.exports = {
             .text()
             .split('\n')[0]
             .split(': ')
-          const key = normalizeKey({ heading, schemaKeysByHeadingFragment })
+
+          const mapping = { deaths: 'deaths', recovered: 'recovered', 'cases': 'total cases' }
+          const key = normalizeKey(heading, mapping)
           data[key] = parse.number(value)
         })
 
