@@ -211,36 +211,23 @@ async function getRawScrapeData (keys, date, options) {
   }
 }
 
-/** Create a CDS-reporting-compatible representation of the Li
- * scraper.  This will let us combine this scraper data with the
- * scraper data from CDS, to generate the flat files. */
 async function getSourceData (key, map) {
   const srcPath = map[key]
 
   // eslint-disable-next-line
   const source = require(srcPath)
   source._sourceKey = key
-
-  const copyfields = [
-    'country',
-    'state',
-    'county'
-  ]
-  const cdsCompatibleSource = copyfields.reduce((hsh, field) => {
-    if (source[field] !== undefined)
-      hsh[field] = source[field]
-    return hsh
-  }, { _key: key } )
-
-  return cdsCompatibleSource
+  source._key = key
+  return source
 }
 
 /** Get CDS-report-compatible structures of all Li sources. */
 async function getAllSourceData (keys) {
   const srcMap = sourceMap()
   const promises = keys.map(async k => { return await getSourceData(k, srcMap) })
-  const sources = await Promise.all(promises)
-  return sources.filter(s => s)
+  const sources = await Promise.all(promises).then(sources => sources.filter(s => s))
+  const keep = [ '_key', 'country', 'state', 'county' ]
+  return onlySpecifiedKeys(sources, keep)
 }
 
 /** Get CDS-compatible "location" data. */
