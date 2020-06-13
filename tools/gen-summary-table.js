@@ -33,18 +33,14 @@ process.env.NODE_ENV = 'testing'
 
 const { join } = require('path')
 const fs = require('fs')
-const is = require('is')
 const assert = require('assert')
 const sandbox = require('@architect/sandbox')
 
 const srcLib = join(process.cwd(), 'src', 'shared', 'sources', '_lib')
 const datetime = require(join(process.cwd(), 'src', 'shared', 'datetime', 'index.js'))
 const sourceMap = require(join(srcLib, 'source-map.js'))
-const findScraper = require(join(srcLib, 'find-scraper.js'))
 const srcEvents = join(process.cwd(), 'src', 'events')
 const crawlSource = require(join(srcEvents, 'crawler', '_crawl.js'))
-const crawler = require(join(srcEvents, 'crawler', 'crawler'))
-const calculateScraperTz = require(join(srcEvents, 'scraper', 'find-tz', 'index.js'))
 const scrape = require(join(srcEvents, 'scraper', '_scrape.js'))
 
 /**
@@ -200,69 +196,26 @@ async function getRawScrapeData (keys, date, options) {
   }
 }
 
-async function getUrl (scraper) {
-  // Arbitrarily picking the first crawl URL as the URL to report.
-  let ret = scraper.crawl[0].url
-  if (is.function(ret)) {
-    try {
-      ret = await ret(crawler.client)
-      if (typeof(ret) !== 'string')
-        ret = ret.url
-    }
-    catch (err) {
-      ret = `Error: ${err}`
-    }
-  }
-  return ret
-}
-
 /** Create a CDS-reporting-compatible representation of the Li
  * scraper.  This will let us combine this scraper data with the
  * scraper data from CDS, to generate the flat files. */
-async function getSourceData (key, map, date) {
+async function getSourceData (key, map) {
   const srcPath = map[key]
 
   // eslint-disable-next-line
   const source = require(srcPath)
   source._sourceKey = key
-  let scraper = null
-  try {
-    scraper = findScraper(source, date)
-  } catch (err) {
-    console.log(`${key}: No scraper at ${date}`)
-    return null
-  }
-
-  const baseUrl = await getUrl(scraper)
-  const tz = await calculateScraperTz(source)
-
-  let cdsCompatibleSource = {
-    _key: key,   // Later will use _key to join this and scrape data.
-    _path: srcPath,
-    url: baseUrl,
-    scraperTz: tz,
-    type: scraper.crawl[0].data, // Used in CDS for ratings.
-  }
-
-  if (source.friendly)
-    cdsCompatibleSource.sources = [ source.friendly ]
 
   const copyfields = [
     'country',
     'state',
-    'county',
-    'maintainers',
-    'priority',
-    'timeseries',
-    'headless',
-    'certValidation',
-    'aggregate'
+    'county'
   ]
-  cdsCompatibleSource = copyfields.reduce((hsh, field) => {
+  const cdsCompatibleSource = copyfields.reduce((hsh, field) => {
     if (source[field] !== undefined)
       hsh[field] = source[field]
     return hsh
-  }, cdsCompatibleSource)
+  }, { _key: key } )
 
   return cdsCompatibleSource
 }
@@ -284,27 +237,16 @@ function onlySpecifiedKeys (arrOfHashes, keys) {
 }
 
 /** Get CDS-report-compatible structures of all Li sources. */
-async function getAllSourceData (keys, date) {
+async function getAllSourceData (keys) {
   const srcMap = sourceMap()
-  const promises = keys.map(async k => { return await getSourceData(k, srcMap, date) })
+  const promises = keys.map(async k => { return await getSourceData(k, srcMap) })
   let sources = await Promise.all(promises)
   sources = sources.filter(s => s)
   const cdsSourceKeys = [
-    '_key',  // Not included in CDS, but keeping it just in case.
-    '_path',
+    '_key',
     'county',
     'state',
-    'country',
-    'maintainers',
-    'url',
-    'type',
-    'timeseries',
-    'headless',
-    'certValidation',
-    'priority',
-    'aggregate',
-    'curators',
-    'scraperTz',
+    'country'
   ]
   return onlySpecifiedKeys(sources, cdsSourceKeys)
 }
@@ -320,18 +262,9 @@ function getLocationData (sourceData, scrapeData) {
     return { ...src, ...sd }
   })
   const cdsLocationKeys = [
-    '_path',
     'country',
     'state',
     'county',
-    'maintainers',
-    'url',
-    'type',
-    'timeseries',
-    'headless',
-    'certValidation',
-    'priority',
-    // 'sources',
     'cases',
     'recovered',
     'deaths',
@@ -342,13 +275,7 @@ function getLocationData (sourceData, scrapeData) {
     'aggregate',
     'discharged',
     'todayHospitalized',
-    'icu',
-    'population',
-    'coordinates',
-    'curators',
-    'city',
-    'publishedDate',
-    'scraperTz',
+    'icu'
   ]
   return onlySpecifiedKeys(locationData, cdsLocationKeys)
 }
@@ -431,7 +358,7 @@ async function main (options) {
       const generatedSourceKeys = scrapeData.
         map(sd => sd.source).
         filter((value, index, self) => self.indexOf(value) === index)
-      const sourceData = await getAllSourceData(generatedSourceKeys, date)
+      const sourceData = await getAllSourceData(generatedSourceKeys)
       saveReport(filenames.sourcesPath, sourceData)
 
       const locationData = getLocationData(sourceData, scrapeData)
