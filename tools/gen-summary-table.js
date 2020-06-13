@@ -143,7 +143,7 @@ function reportGenerationStatus () {
  */
 
 /** Returns data, or null if there was an error. */
-async function getSingleRawData (sourceID, crawl, date) {
+async function scrapeData (sourceID, crawl, date) {
   let data = null
   try {
     if (crawl) {
@@ -182,7 +182,7 @@ async function asyncPool (array, poolSize) {
 
 async function getRawScrapeData (keys, date, options) {
   function makeScrapeCall (key) {
-    return async () => await getSingleRawData(key, options.crawl, date)
+    return async () => await scrapeData(key, options.crawl, date)
   }
   const promises = keys.map(k => makeScrapeCall(k))
   const reportingID = setInterval(() => reportGenerationStatus(), 5000)
@@ -191,13 +191,10 @@ async function getRawScrapeData (keys, date, options) {
   }
   finally {
     clearInterval(reportingID)
-    reportGenerationStatus()
   }
 }
 
-async function getSourceData (key, map) {
-  const srcPath = map[key]
-
+async function getSourceData (key, srcPath) {
   // eslint-disable-next-line
   const source = require(srcPath)
   source._sourceKey = key
@@ -208,7 +205,7 @@ async function getSourceData (key, map) {
 /** Get CDS-report-compatible structures of all Li sources. */
 async function getAllSourceData (keys) {
   const srcMap = sourceMap()
-  const promises = keys.map(async k => { return await getSourceData(k, srcMap) })
+  const promises = keys.map(async k => { return await getSourceData(k, srcMap[k]) })
   return Promise.all(promises).then(sources => sources.filter(s => s))
 }
 
