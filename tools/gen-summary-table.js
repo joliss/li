@@ -142,22 +142,6 @@ function reportGenerationStatus () {
  * Loading data.
  */
 
-/** Only export keys that are used during CDS reporting (presumably!).
- *
- * The lists of keys to include were determined by running `yarn
- * raw:scrape` in CDS, and looking at the generated key files
- * (dist-raw/raw-sources-keys and dist-raw/raw-locations-keys).
- */
-function onlySpecifiedKeys (arrOfHashes, keys) {
-  return arrOfHashes.map(hsh => {
-    const keepKeys = keys.filter(k => Object.keys(hsh).includes(k))
-    return keepKeys.reduce((ret, key) => {
-      ret[key] = hsh[key]
-      return ret
-    }, {})
-  })
-}
-
 /** Returns data, or null if there was an error. */
 async function getSingleRawData (sourceID, crawl, date) {
   let data = null
@@ -225,38 +209,40 @@ async function getSourceData (key, map) {
 async function getAllSourceData (keys) {
   const srcMap = sourceMap()
   const promises = keys.map(async k => { return await getSourceData(k, srcMap) })
-  const sources = await Promise.all(promises).then(sources => sources.filter(s => s))
-  const keep = [ '_key', 'country', 'state', 'county' ]
-  return onlySpecifiedKeys(sources, keep)
+  return Promise.all(promises).then(sources => sources.filter(s => s))
 }
 
 /** Get CDS-compatible "location" data. */
 function getLocationData (sourceData, scrapeData) {
-  let locationData = scrapeData.map(sd => {
+  return scrapeData.map(sd => {
     const src = sourceData.find(s => s._key === sd.source)
     assert(src, `Have source with key ${sd.source} to match scrape ${JSON.stringify(sd)}`)
 
     // Order here is important: we want the src first, because for JHU
     // the scrape data (country) overrides the source.
-    return { ...src, ...sd }
+    return { ...src, ...sd, key: `${sd.country}/${sd.state}/${sd.county}` }
+  }).map(hsh => {
+    const keep = [
+      'key',
+      'date',
+      'cases',
+      'recovered',
+      'deaths',
+      'active',
+      'tested',
+      'tests',
+      'hospitalized',
+      'discharged',
+      'todayHospitalized',
+      'icu'
+    ]
+    return keep.
+      filter(f => Object.keys(hsh).includes(f)).
+      reduce((ret, key) => {
+        ret[key] = hsh[key]
+        return ret
+      }, {})
   })
-  const cdsLocationKeys = [
-    'country',
-    'state',
-    'county',
-    'cases',
-    'recovered',
-    'deaths',
-    'active',
-    'tested',
-    'tests',
-    'hospitalized',
-    'aggregate',
-    'discharged',
-    'todayHospitalized',
-    'icu'
-  ]
-  return onlySpecifiedKeys(locationData, cdsLocationKeys)
 }
 
 function genTable (rawLiData) {
@@ -302,19 +288,7 @@ async function main (options) {
       const locationData = getLocationData(sourceData, scrapeData)
 
       locationData.forEach(loc => {
-        const key = `${loc.country}/${loc.state}/${loc.county}`
-        const fields = [ 'cases', 'recovered', 'deaths', 'tested', 'hospitalized' ]
-        const record = fields.reduce((hsh, f) => {
-          if (loc[f] !== undefined) {
-            // console.log(f)
-            // console.log(loc[f])
-            hsh[f] = loc[f]
-          }
-          return hsh
-        }, { key, date } )
-        // console.table(loc)
-        // console.table(record)
-        rawLiData.push(record)
+        rawLiData.push(loc)
       })
 
     }  // next date
