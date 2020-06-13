@@ -142,6 +142,22 @@ function reportGenerationStatus () {
  * Loading data.
  */
 
+/** Only export keys that are used during CDS reporting (presumably!).
+ *
+ * The lists of keys to include were determined by running `yarn
+ * raw:scrape` in CDS, and looking at the generated key files
+ * (dist-raw/raw-sources-keys and dist-raw/raw-locations-keys).
+ */
+function onlySpecifiedKeys (arrOfHashes, keys) {
+  return arrOfHashes.map(hsh => {
+    const keepKeys = keys.filter(k => Object.keys(hsh).includes(k))
+    return keepKeys.reduce((ret, key) => {
+      ret[key] = hsh[key]
+      return ret
+    }, {})
+  })
+}
+
 /** Returns data, or null if there was an error. */
 async function getSingleRawData (sourceID, crawl, date) {
   let data = null
@@ -217,22 +233,6 @@ async function getSourceData (key, map) {
   }, { _key: key } )
 
   return cdsCompatibleSource
-}
-
-/** Only export keys that are used during CDS reporting (presumably!).
- *
- * The lists of keys to include were determined by running `yarn
- * raw:scrape` in CDS, and looking at the generated key files
- * (dist-raw/raw-sources-keys and dist-raw/raw-locations-keys).
- */
-function onlySpecifiedKeys (arrOfHashes, keys) {
-  return arrOfHashes.map(hsh => {
-    const keepKeys = keys.filter(k => Object.keys(hsh).includes(k))
-    return keepKeys.reduce((ret, key) => {
-      ret[key] = hsh[key]
-      return ret
-    }, {})
-  })
 }
 
 /** Get CDS-report-compatible structures of all Li sources. */
@@ -311,15 +311,7 @@ async function main (options) {
       sourceKeys.forEach(k => generationStatus[k] = 'pending')
       const scrapeData = await getRawScrapeData(sourceKeys, date, options)
       generationStatus = {}
-
-      if (scrapeData.length === 0) {
-        console.log(`No data scraped for ${date}, skipping`)
-        continue
-      }
-
-      const generatedSourceKeys = [ ...new Set(scrapeData.map(sd => sd.source)) ]
-
-      const sourceData = await getAllSourceData(generatedSourceKeys)
+      const sourceData = await getAllSourceData(sourceKeys)
       const locationData = getLocationData(sourceData, scrapeData)
 
       locationData.forEach(loc => {
