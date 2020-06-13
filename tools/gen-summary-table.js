@@ -37,7 +37,6 @@ const assert = require('assert')
 const sandbox = require('@architect/sandbox')
 
 const srcLib = join(process.cwd(), 'src', 'shared', 'sources', '_lib')
-const datetime = require(join(process.cwd(), 'src', 'shared', 'datetime', 'index.js'))
 const sourceMap = require(join(srcLib, 'source-map.js'))
 const srcEvents = join(process.cwd(), 'src', 'events')
 const crawlSource = require(join(srcEvents, 'crawler', '_crawl.js'))
@@ -280,32 +279,6 @@ function getLocationData (sourceData, scrapeData) {
   return onlySpecifiedKeys(locationData, cdsLocationKeys)
 }
 
-/** Report filenames.
- *
- * This filenames are used in CDS during the `yarn raw:reportcombined`
- * script, so any changes here will require changes there as well.
-*/
-function reportFilenames (options, date) {
-  let suffix = ''
-
-  // If a date was specified in options, or we're looping through a range,
-  // use the supplied date.
-  if (options.date || options.startDate)
-    suffix = `-${datetime.getYYYYMMDD(date)}`
-
-  return {
-    sourcesPath: join(options.output, `raw-li-sources${suffix}.json`),
-    scrapePath: join(options.output, `raw-li-scrape${suffix}.json`),
-    locationsPath: join(options.output, `raw-li-locations${suffix}.json`)
-  }
-}
-
-function saveReport (filename, data) {
-  console.log(`Saving ${filename}`)
-  fs.writeFileSync(filename, JSON.stringify(data, null, 2))
-}
-
-
 function genTable (rawLiData) {
   const keys = [ ...new Set(rawLiData.map(d => d.key)) ]
   const byDate = (a, b) => { return a.date < b.date ? -1 : 1 }
@@ -351,18 +324,12 @@ async function main (options) {
         continue
       }
 
-      const filenames = reportFilenames(options, date)
-
-      saveReport(filenames.scrapePath, scrapeData)
-
       const generatedSourceKeys = scrapeData.
         map(sd => sd.source).
         filter((value, index, self) => self.indexOf(value) === index)
       const sourceData = await getAllSourceData(generatedSourceKeys)
-      saveReport(filenames.sourcesPath, sourceData)
 
       const locationData = getLocationData(sourceData, scrapeData)
-      saveReport(filenames.locationsPath, locationData)
 
       locationData.forEach(loc => {
         const key = `${loc.country}/${loc.state}/${loc.county}`
