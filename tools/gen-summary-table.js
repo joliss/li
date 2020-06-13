@@ -239,7 +239,7 @@ function onlySpecifiedKeys (arrOfHashes, keys) {
 async function getAllSourceData (keys) {
   const srcMap = sourceMap()
   const promises = keys.map(async k => { return await getSourceData(k, srcMap) })
-  let sources = await Promise.all(promises)
+  const sources = await Promise.all(promises)
   return sources.filter(s => s)
 }
 
@@ -313,15 +313,13 @@ async function main (options) {
       generationStatus = {}
 
       if (scrapeData.length === 0) {
-        console.log(`No data scraped for ${date}, skipping file save.`)
+        console.log(`No data scraped for ${date}, skipping`)
         continue
       }
 
-      const generatedSourceKeys = scrapeData.
-        map(sd => sd.source).
-        filter((value, index, self) => self.indexOf(value) === index)
-      const sourceData = await getAllSourceData(generatedSourceKeys)
+      const generatedSourceKeys = [ ...new Set(scrapeData.map(sd => sd.source)) ]
 
+      const sourceData = await getAllSourceData(generatedSourceKeys)
       const locationData = getLocationData(sourceData, scrapeData)
 
       locationData.forEach(loc => {
