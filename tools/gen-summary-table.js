@@ -240,14 +240,7 @@ async function getAllSourceData (keys) {
   const srcMap = sourceMap()
   const promises = keys.map(async k => { return await getSourceData(k, srcMap) })
   let sources = await Promise.all(promises)
-  sources = sources.filter(s => s)
-  const cdsSourceKeys = [
-    '_key',
-    'county',
-    'state',
-    'country'
-  ]
-  return onlySpecifiedKeys(sources, cdsSourceKeys)
+  return sources.filter(s => s)
 }
 
 /** Get CDS-compatible "location" data. */
