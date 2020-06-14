@@ -242,18 +242,24 @@ function getLocationData (sourceData, scrapeData) {
   })
 }
 
-function genTable (rawLiData) {
-  const keys = [ ...new Set(rawLiData.map(d => d.key)) ]
+function writeReport (reportPath, data) {
+  // Redirecting console so that we can use console.table.
+  var reportStream = fs.createWriteStream(reportPath)
+  const oldWrite = process.stdout.write
+  process.stdout.write = reportStream.write.bind(reportStream)
+
+  const keys = [ ...new Set(data.map(d => d.key)) ]
   const byDate = (a, b) => { return a.date < b.date ? -1 : 1 }
+
   keys.forEach(k => {
-    const records = rawLiData.
-          filter(d => d.key === k).
-          map(d => { delete d.key; return d }).
-          sort(byDate)
+    const delKey = d => { delete d.key; return d }
+    const records = data.filter(d => d.key === k).map(delKey)
     console.log()
     console.log(k)
-    console.table(records)
+    console.table(records.sort(byDate))
   })
+
+  process.stdout.write = oldWrite
 }
 
 /** Main generation routine. */
@@ -272,9 +278,7 @@ async function main (options) {
     const rawLiData = []
 
     for (const date of getDates(options)) {
-      console.log('\n')
-      console.log('='.repeat(40))
-      console.log(`Generating ${date}`)
+      console.log(`\nGenerating ${date}`)
 
       generationStatus = {}
       generationDate = date
@@ -290,7 +294,10 @@ async function main (options) {
 
     }  // next date
 
-    genTable(rawLiData)
+    const reportPath = join(options.output, 'report.txt')
+    writeReport(reportPath, rawLiData)
+    console.log()
+    console.log(`done ${reportPath}.`)
   }
   finally {
     await sandbox.end()
@@ -302,6 +309,5 @@ async function main (options) {
  * Entry point.
  */
 
-console.log(`Generating Li files for ${getDates(argv)} dates`)
 main(argv)
 console.log('Done.')
