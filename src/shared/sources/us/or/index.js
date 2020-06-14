@@ -3,13 +3,12 @@ const maintainers = require("../../_lib/maintainers.js")
 const parse = require("../../_lib/parse.js")
 const transform = require("../../_lib/transform.js")
 
-const schemaKeysByHeadingFragment = {
-  county: "county",
-  cases: "cases",
-  positive: "cases",
-  deaths: "deaths",
-  negative: "testedNegative",
-  percent: null,
+const mapping = {
+  cases: [ 'cases', 'positive' ],
+  county: 'county',
+  deaths: 'deaths',
+  testedNegative: 'negative',
+  null: 'percent'
 }
 
 const allCounties = [
@@ -78,7 +77,7 @@ module.exports = {
         {
           assertTotalsAreReasonable,
           getDataWithTestedNegativeApplied,
-          getSchemaKeyFromHeading,
+          normalizeKey,
           normalizeTable,
         }
       ) {
@@ -88,15 +87,12 @@ module.exports = {
         })
 
         const headingRowIndex = 0
-        const dataKeysByColumnIndex = []
-        normalizedTable[headingRowIndex].forEach((heading, index) => {
-          dataKeysByColumnIndex[index] = getSchemaKeyFromHeading({
-            heading,
-            schemaKeysByHeadingFragment,
-          })
-        })
-
         const totalsRowIndex = normalizedTable.length - 1
+        // TODO: validate thet the heading row and total row are in fact correct.
+
+        const headings = normalizedTable[headingRowIndex]
+        const propertyColIndices = normalizeKey.propertyColumnIndices(headings, mapping)
+
         // Create new array with just the county data (no headings, comments, totals)
         const countyDataRows = normalizedTable.filter(
           (row, index) => index !== 0 && index !== totalsRowIndex
@@ -104,26 +100,14 @@ module.exports = {
 
         let counties = []
         countyDataRows.forEach((row) => {
-          const countyData = {}
-          row.forEach((value, columnIndex) => {
-            const key = dataKeysByColumnIndex[columnIndex]
-            if (key) {
-              countyData[key] = value
-            }
-          })
-
+          const countyData = normalizeKey.createHash(propertyColIndices, row)
+          const parseNum = n => (n ? parse.number(n) : undefined)
           counties.push(
             getDataWithTestedNegativeApplied({
               county: geography.addCounty(countyData.county.replace(/\W/g, "")),
-              cases: countyData.cases
-                ? parse.number(countyData.cases)
-                : undefined,
-              deaths: countyData.deaths
-                ? parse.number(countyData.deaths)
-                : undefined,
-              testedNegative: countyData.testedNegative
-                ? parse.number(countyData.testedNegative)
-                : undefined,
+              cases: parseNum(countyData.cases),
+              deaths: parseNum(countyData.deaths),
+              testedNegative: parseNum(countyData.testedNegative)
             })
           )
         })
@@ -131,12 +115,8 @@ module.exports = {
         const summedData = transform.sumData(counties)
         counties.push(summedData)
 
-        const indexForCases = dataKeysByColumnIndex.findIndex(
-          (key) => key === "cases"
-        )
-
         const casesFromTotalRow = parse.number(
-          normalizedTable[totalsRowIndex][indexForCases]
+          normalizedTable[totalsRowIndex][propertyColIndices.cases]
         )
         assertTotalsAreReasonable({
           computed: summedData.cases,
